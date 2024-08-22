@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #messages {
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+        }
+        #messages div {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Test Client</h1>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Enter your message">
+    <button id="sendButton">Send</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const messagesDiv = document.getElementById('messages');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+
+            const ws = new WebSocket('ws://localhost:8080');
+
+            ws.onopen = () => {
+                console.log('Connected to WebSocket server');
+                addMessageToUI('Connected to WebSocket server');
+            };
+
+            ws.onmessage = (event) => {
+                console.log('Message received:', event.data);
+                addMessageToUI('Server: ' + event.data);
+            };
+
+            ws.onclose = () => {
+                console.log('Disconnected from WebSocket server');
+                addMessageToUI('Disconnected from WebSocket server');
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                addMessageToUI('WebSocket error: ' + error);
+            };
+
+            sendButton.addEventListener('click', () => {
+                const message = messageInput.value;
+                if (message) {
+                    const data = JSON.stringify({ type: 'lobbyMessage', lobbyName: 'lobby', message: message, username: 'HTMLClient' });
+                    ws.send(data);
+                    addMessageToUI('You: ' + message);
+                    messageInput.value = '';
+                }
+            });
+
+            function addMessageToUI(message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = message;
+                messagesDiv.appendChild(messageDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>
